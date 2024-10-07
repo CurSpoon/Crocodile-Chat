@@ -49,7 +49,7 @@ export default {
 
     const handleDelete = async () => {
       const { adminPassword } = await request.json();
-      const ADMIN_PASSWORD = env.ADMIN_PASSWORD || "yourAdminPassword";
+      const ADMIN_PASSWORD = env.ADMIN_PASSWORD || "admin12345";
       if (adminPassword !== ADMIN_PASSWORD) {
         return new Response(JSON.stringify({ success: false, message: "Unauthorized" }), {
           status: 401,
