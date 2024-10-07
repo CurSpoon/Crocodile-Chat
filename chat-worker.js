@@ -18,8 +18,15 @@ export default {
       if (!username || !message) {
         return new Response(JSON.stringify({ error: "Invalid input" }), { status: 400 });
       }
-      const stmt = env.DB.prepare("INSERT INTO messages (username, message) VALUES (?, ?)");
-      await stmt.bind(username, message).run();
+      
+      // 获取当前时间并转换为上海时区
+      const now = new Date();
+      const shanghaiTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Shanghai"}));
+      const timestamp = shanghaiTime.toISOString().slice(0, 19).replace('T', ' ');
+      
+      const stmt = env.DB.prepare("INSERT INTO messages (username, message, timestamp) VALUES (?, ?, ?)");
+      await stmt.bind(username, message, timestamp).run();
+      
       return new Response(JSON.stringify({ success: true, message: "Message sent" }), {
         status: 200,
         headers: {
