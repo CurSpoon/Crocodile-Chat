@@ -6,9 +6,9 @@ export default {
   async fetch(request, env) {
     // 在fetch函数开始时初始化环境变量
     // 在此处设置重置清除聊天记录的管理员密码"default_admin_password"
-    this.ADMIN_PASSWORD = env.ADMIN_PASSWORD || "default_admin_password";
+    this.ADMIN_PASSWORD = env.ADMIN_PASSWORD || "admin12345";
     // 在此处设置登录密码"default_encryption_password"
-    this.ENCRYPTION_PASSWORD = env.ENCRYPTION_PASSWORD || "default_encryption_password";
+    this.ENCRYPTION_PASSWORD = env.ENCRYPTION_PASSWORD || "admin12345";
 
     // 设置通用的 CORS 头部
     const corsHeaders = {
