@@ -12,6 +12,25 @@
 4. **自适应布局**：针对桌面、平板和手机等不同设备，提供了优化的响应式布局。
 5. **管理员权限**：允许管理员通过密码验证，删除所有聊天记录。
 
+## 使用说明
+
+1. **使用 Cloudflare D1 创建 `chat-db` 数据库**：
+   - 登录到你的 [Cloudflare Dashboard](https://dash.cloudflare.com/)。
+   - 前往 **Workers & D1** 选项卡，创建一个新的 D1 数据库并命名为 `chat-db`。
+   - 创建好数据库后，在 D1 数据库页面上找到并使用 SQL 控制台，运行项目中的数据库 SQL 脚本来初始化表结构和数据。
+
+2. **使用 Worker 代码创建 `chat-worker` 服务**：
+   - 进入 Cloudflare Dashboard，前往 **Workers** 选项卡，创建一个新的 Worker 服务，命名为 `chat-worker`。
+   - 将项目中的 Worker 代码上传到这个服务，该代码负责处理前端的 API 请求，进行消息的存储和加载。
+   - 例如，在 Worker 代码中，你需要处理与 D1 数据库的交互，如查询和插入消息。
+
+3. **在 Worker 项目设置中绑定变量和数据库**：
+   - 在 Cloudflare Dashboard 中，打开你创建的 `chat-worker` 服务的设置页面。
+   - 找到 **D1 Bindings** 选项，绑定你在步骤 1 中创建的 `chat-db` 数据库到该 Worker 服务。
+   - 确保 Worker 能够访问该 D1 数据库进行消息的读写操作。你可能需要配置一些环境变量，如数据库绑定的名称和权限。
+
+### 完成上述步骤后，前端页面将能够与 Cloudflare Worker 和 D1 数据库正常交互，实现完整的聊天功能。
+
 ## 代码解析
 
 ### 样式设计（CSS）
@@ -58,25 +77,6 @@
 - `GET /?page={page}`：获取指定页码的聊天记录。
 - `POST /`：发送消息，提交 `username` 和 `message` 信息。
 - `DELETE /delete`：删除所有消息记录，需要管理员密码进行身份验证。
-
-## 使用说明
-
-1. **使用 Cloudflare D1 创建 `chat-db` 数据库**：
-   - 登录到你的 [Cloudflare Dashboard](https://dash.cloudflare.com/)。
-   - 前往 **Workers & D1** 选项卡，创建一个新的 D1 数据库并命名为 `chat-db`。
-   - 创建好数据库后，在 D1 数据库页面上找到并使用 SQL 控制台，运行项目中的数据库 SQL 脚本来初始化表结构和数据。
-
-2. **使用 Worker 代码创建 `chat-worker` 服务**：
-   - 进入 Cloudflare Dashboard，前往 **Workers** 选项卡，创建一个新的 Worker 服务，命名为 `chat-worker`。
-   - 将项目中的 Worker 代码上传到这个服务，该代码负责处理前端的 API 请求，进行消息的存储和加载。
-   - 例如，在 Worker 代码中，你需要处理与 D1 数据库的交互，如查询和插入消息。
-
-3. **在 Worker 项目设置中绑定变量和数据库**：
-   - 在 Cloudflare Dashboard 中，打开你创建的 `chat-worker` 服务的设置页面。
-   - 找到 **D1 Bindings** 选项，绑定你在步骤 1 中创建的 `chat-db` 数据库到该 Worker 服务。
-   - 确保 Worker 能够访问该 D1 数据库进行消息的读写操作。你可能需要配置一些环境变量，如数据库绑定的名称和权限。
-
-### 完成上述步骤后，前端页面将能够与 Cloudflare Worker 和 D1 数据库正常交互，实现完整的聊天功能。
 
 ## 未来改进方向
 
