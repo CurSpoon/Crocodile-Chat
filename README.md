@@ -8,11 +8,11 @@
 
 ### PC 端
 
-![image.png](https://i.pstorage.space/i/dbPAXV4xN/original_image.png)
+<img src="https://i.pstorage.space/i/dbPAXV4xN/original_image.png" alt="image" width="50%" />
 
 ### 安卓端
 
-![image.png](https://i.pstorage.space/i/OD0ZxwYzO/original_image_1.png)
+<img src="https://i.pstorage.space/i/OD0ZxwYzO/original_image_1.png" alt="image" width="20%" />
 
 ## 功能特性
 
@@ -36,13 +36,13 @@
 2. 选择"概述"
 3. 创建 Worker，输入名称 chat-worker（可自定义），并保存 Worker 链接
    
-    ![image.png](https://i.pstorage.space/i/3dv29X7g6/original_image_2.png)
+   <img src="https://i.pstorage.space/i/3dv29X7g6/original_image_2.png" alt="image" width="50%" />
     
-4. 部署 Worker
-5. 编辑代码，输入 `chat-worker.js` 文件中的代码，点击部署，并保存预览链接
-6. 返回"Workers 和 Pages"选项的概述界面
-7. 选择刚创建的 Worker
-8. 依次选择：设置 → 绑定 → 添加 → D1 数据库，将变量名设为 `DB`，选择刚才创建的数据库
+5. 部署 Worker
+6. 编辑代码，输入 `chat-worker.js` 文件中的代码，点击部署，并保存预览链接
+7. 返回"Workers 和 Pages"选项的概述界面
+8. 选择刚创建的 Worker
+9. 依次选择：设置 → 绑定 → 添加 → D1 数据库，将变量名设为 `DB`，选择刚才创建的数据库
 
 ### HTML 配置
 
