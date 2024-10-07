@@ -30,9 +30,9 @@
 ## 使用说明
 
 ### 版本选择
-
-- **不加密版本**：使用 unencrypted password version 文件夹下的代码
-- **加密版本**：使用 encrypted password version 文件夹下的代码
+- 加密版本搞出来了！不过，软件的核心还是能简单就简单。也留着不加密的版本，大家看着需求自己挑吧。
+1. **不加密版本**：使用 unencrypted password version 文件夹下的代码
+2. **加密版本**：使用 encrypted password version 文件夹下的代码
 
 ### D1 数据库配置
 
