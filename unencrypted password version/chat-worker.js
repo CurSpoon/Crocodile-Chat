@@ -41,10 +41,20 @@ export default {
       const page = parseInt(url.searchParams.get("page") || "1", 10);
       const limit = 30; // 每页显示的消息数量
       const offset = (page - 1) * limit;
+      const after = url.searchParams.get("after");
 
-      const result = await env.DB.prepare("SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?")
-        .bind(limit, offset)
-        .all();
+      let query;
+      let params;
+
+      if (after) {
+        query = "SELECT * FROM messages WHERE id > ? ORDER BY id ASC LIMIT ?";
+        params = [after, limit];
+      } else {
+        query = "SELECT * FROM messages ORDER BY id DESC LIMIT ? OFFSET ?";
+        params = [limit, offset];
+      }
+
+      const result = await env.DB.prepare(query).bind(...params).all();
 
       return new Response(JSON.stringify(result), {
         headers: {
