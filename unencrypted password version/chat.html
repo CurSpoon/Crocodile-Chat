@@ -128,17 +128,21 @@
     </div>
 
     <script>
-        const API_URL = "https://xxxxxxxxx";
+        const API_URL = "xxxxxxxxxxxxxx";  // 替换为正确的API URL
         let username = localStorage.getItem("username");
+        let lastMessageId = null;  // 用于记录最后一条消息的ID
+
         if (!username) {
             username = prompt("请输入你的用户名");
             localStorage.setItem("username", username);
         }
 
-        let isFetchingMessages = false;
+        let isFetchingMessages = false;  // 是否正在获取消息的标志
+        let messageQueue = [];  // 消息队列
+        let isSending = false;  // 是否正在发送消息的标志
+
         const colorMap = new Map();
         const colors = ["#d1ecf1", "#f8d7da", "#d4edda", "#fff3cd", "#d1d1e0", "#f0d1e0", "#d1e0d1", "#e0d1d1", "#cce5ff", "#e2e3e5"];
-        let lastMessageId = null;  // 用于记录最后一条消息的ID
 
         function getColorForUsername(username) {
             if (!colorMap.has(username)) {
@@ -153,6 +157,85 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
+        // 修改 sendMessage 函数
+        function sendMessage() {
+            const messageInput = document.getElementById("message-input");
+            const message = messageInput.value.trim();
+            if (message === "") {
+                alert("消息不能为空");
+                return;
+            }
+
+            const payload = {
+                username: username,
+                message: message
+            };
+
+            if (isFetchingMessages || isSending) {
+                // 如果正在刷新消息或发送中,将消息加入队列
+                messageQueue.push(payload);
+                setSendButtonState(true, "发送中...");
+                messageInput.value = "";
+                return;
+            }
+
+            sendMessageToServer(payload);
+        }
+
+        // 新增 sendMessageToServer 函数
+        function sendMessageToServer(payload) {
+            isSending = true;
+            setSendButtonState(true, "发送中...");
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("message-input").value = "";
+                    getMessages(1, true); // 发送成功后获取最新消息
+                    scrollToBottom(); // 滚动到底部
+                } else {
+                    alert("消息发送失败: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("发送消息时出错:", error);
+                alert("发送消息失败,请稍后重试");
+            })
+            .finally(() => {
+                isSending = false;
+                setSendButtonState(false, "发送");
+                processMessageQueue();
+            });
+        }
+
+        // 新增 processMessageQueue 函数
+        function processMessageQueue() {
+            if (messageQueue.length > 0 && !isFetchingMessages && !isSending) {
+                const nextMessage = messageQueue.shift();
+                sendMessageToServer(nextMessage);
+            }
+        }
+
+        // 新增 setSendButtonState 函数
+        function setSendButtonState(disabled, text) {
+            const sendBtn = document.getElementById("send-btn");
+            sendBtn.disabled = disabled;
+            sendBtn.textContent = text;
+        }
+
+        // 修改 getMessages 函数
         function getMessages(page = 1, isAutoRefresh = false) {
             if (isFetchingMessages) return;
             isFetchingMessages = true;
@@ -175,25 +258,34 @@
                 
                 if (messages.length > 0) {
                     const fragment = document.createDocumentFragment();
+                    let newMessagesAdded = false;
                     messages.forEach(msg => {
-                        const msgElement = document.createElement("div");
-                        msgElement.textContent = `${msg.timestamp} ${msg.username}: ${msg.message}`;
-                        msgElement.style.backgroundColor = getColorForUsername(msg.username);
-                        fragment.appendChild(msgElement);
+                        if (!document.getElementById(`msg-${msg.id}`)) {
+                            const msgElement = document.createElement("div");
+                            msgElement.id = `msg-${msg.id}`;
+                            msgElement.textContent = `${msg.timestamp} ${msg.username}: ${msg.message}`;
+                            msgElement.style.backgroundColor = getColorForUsername(msg.username);
+                            fragment.appendChild(msgElement);
+                            newMessagesAdded = true;
+                        }
                     });
 
                     if (isAutoRefresh) {
                         chatBox.appendChild(fragment);
-                        scrollToBottom();
-                        lastMessageId = messages[messages.length - 1].id;  // 更新最后一条消息的ID
+                        if (newMessagesAdded) {
+                            scrollToBottom();
+                        }
                     } else {
                         chatBox.insertBefore(fragment, chatBox.firstChild);
+                    }
+
+                    if (messages.length > 0) {
+                        lastMessageId = messages[messages.length - 1].id;
                     }
                 }
 
                 if (page === 1 && !isAutoRefresh) {
                     scrollToBottom();
-                    lastMessageId = messages[messages.length - 1].id;  // 初始化最后一条消息的ID
                 }
             })
             .catch(error => {
@@ -201,6 +293,7 @@
             })
             .finally(() => {
                 isFetchingMessages = false;
+                processMessageQueue(); // 在消息刷新完成后处理消息队列
             });
         }
 
@@ -209,55 +302,6 @@
             setInterval(() => {
                 getMessages(1, true);  // 自动获取最新消息
             }, REFRESH_INTERVAL);
-        }
-
-        function sendMessage() {
-            const messageInput = document.getElementById("message-input");
-            const message = messageInput.value.trim();
-            if (message === "") {
-                alert("消息不能为空");
-                return;
-            }
-
-            const sendBtn = document.getElementById("send-btn");
-            sendBtn.disabled = true;
-            sendBtn.textContent = "发送中...";
-
-            const payload = {
-                username: username,
-                message: message
-            };
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    messageInput.value = ""; // 清空输入框
-                    getMessages(1, true); // 获取最新消息
-                } else {
-                    alert("消息发送失败: " + data.message);
-                }
-            })
-            .catch(error => {
-                console.error("发送消息时出错:", error);
-                alert("发送消息失败，请稍后重试");
-            })
-            .finally(() => {
-                sendBtn.disabled = false;
-                sendBtn.textContent = "发送";
-                messageInput.focus(); // 重新聚焦到输入框
-            });
         }
 
         // 监听滚动事件，加载更多历史消息
@@ -308,6 +352,13 @@
             }
         }
 
+        // 修改页面加载完成后的操作
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("message-input").focus();
+            getMessages(1);  // 加载第一页消息
+            autoRefreshMessages();  // 启动自动刷新
+        });
+
         // 事件监听器，点击发送按钮时发送消息
         document.getElementById("send-btn").addEventListener("click", sendMessage);
 
@@ -321,13 +372,6 @@
 
         // 事件监听器，点击删除按钮时删除所有消息
         document.getElementById("delete-btn").addEventListener("click", deleteAllMessages);
-
-        // 在页面加载完成后,添加滚动到底部的操作
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("message-input").focus();
-            getMessages(1);  // 加载第一页消息
-            autoRefreshMessages();  // 启动自动刷新
-        });
     </script>
 
 </body>
