@@ -60,18 +60,30 @@ export default {
     const handleGet = async () => {
       const url = new URL(request.url);
       const page = parseInt(url.searchParams.get("page") || "1", 10);
+      const after = url.searchParams.get("after");
       const limit = 30; // 每页显示的消息数量
       const offset = (page - 1) * limit;
 
-      const result = await env.DB.prepare("SELECT * FROM messages ORDER BY timestamp DESC LIMIT ? OFFSET ?")
-        .bind(limit, offset)
-        .all();
+      let query = "SELECT * FROM messages";
+      let params = [];
+
+      if (after) {
+          query += " WHERE id > ?";
+          params.push(after);
+      }
+
+      query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+      params.push(limit, offset);
+
+      const result = await env.DB.prepare(query)
+          .bind(...params)
+          .all();
 
       return new Response(JSON.stringify(result), {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+          headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+          },
       });
     };
 
