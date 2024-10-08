@@ -29,7 +29,7 @@
 
 ## 试用方法
 
-- 直接点击[Demo](https://plat-sh-community-prod-upload-ugc.oss-cn-shanghai.aliyuncs.com/upload/2024/10/08/431907881/0e26dd89c830a986873c3173b31c0c51_4591352145027447256.jpg?response-content-type=text/html)即可直接试用
+- 直接点击[Demo](https://plat-sh-community-prod-upload-ugc.oss-cn-shanghai.aliyuncs.com/upload/2024/10/08/431907881/1d4232fcce15b6e72d114ee0bf3162a7_5955893118267071925.jpg?response-content-type=text/html)即可直接试用
 
 ## 使用说明
 
