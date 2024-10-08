@@ -27,6 +27,10 @@
 
     - 默认密码：`admin12345`（在 `encrypted password version/chat-worker.js` 第 11 行设置）
 
+## 试用方法
+
+- 直接点击[Demo](https://plat-sh-community-prod-upload-ugc.oss-cn-shanghai.aliyuncs.com/upload/2024/10/08/431907881/0e26dd89c830a986873c3173b31c0c51_4591352145027447256.jpg?response-content-type=text/html)即可直接试用
+
 ## 使用说明
 
 ### 版本选择
