@@ -128,7 +128,7 @@
     </div>
 
     <script>
-        const API_URL = "xxxxxxxxxxxxxx";  // 替换为正确的API URL
+        const API_URL = "https://xxxxxxxxxxx";  // 替换为正确的API URL
         let username = localStorage.getItem("username");
         let lastMessageId = null;  // 用于记录最后一条消息的ID
 
@@ -235,6 +235,9 @@
             sendBtn.textContent = text;
         }
 
+        let allMessages = [];  // 用于存储所有已加载的消息
+        let oldestMessageId = null;  // 用于记录最早的消息ID
+
         // 修改 getMessages 函数
         function getMessages(page = 1, isAutoRefresh = false) {
             if (isFetchingMessages) return;
@@ -243,6 +246,8 @@
             let url = `${API_URL}?page=${page}`;
             if (isAutoRefresh && lastMessageId) {
                 url += `&after=${lastMessageId}`;
+            } else if (!isAutoRefresh && oldestMessageId) {
+                url += `&before=${oldestMessageId}`;
             }
 
             fetch(url)
@@ -253,34 +258,21 @@
                 return response.json();
             })
             .then(data => {
-                const messages = data.results;
-                const chatBox = document.getElementById("chat-box");
+                const newMessages = data.results.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 
-                if (messages.length > 0) {
-                    const fragment = document.createDocumentFragment();
-                    let newMessagesAdded = false;
-                    messages.forEach(msg => {
-                        if (!document.getElementById(`msg-${msg.id}`)) {
-                            const msgElement = document.createElement("div");
-                            msgElement.id = `msg-${msg.id}`;
-                            msgElement.textContent = `${msg.timestamp} ${msg.username}: ${msg.message}`;
-                            msgElement.style.backgroundColor = getColorForUsername(msg.username);
-                            fragment.appendChild(msgElement);
-                            newMessagesAdded = true;
-                        }
-                    });
-
+                if (newMessages.length > 0) {
                     if (isAutoRefresh) {
-                        chatBox.appendChild(fragment);
-                        if (newMessagesAdded) {
-                            scrollToBottom();
-                        }
+                        allMessages = allMessages.concat(newMessages);
+                        lastMessageId = newMessages[newMessages.length - 1].id;
                     } else {
-                        chatBox.insertBefore(fragment, chatBox.firstChild);
+                        allMessages = newMessages.concat(allMessages);
+                        oldestMessageId = newMessages[0].id;
                     }
 
-                    if (messages.length > 0) {
-                        lastMessageId = messages[messages.length - 1].id;
+                    renderMessages();
+
+                    if (isAutoRefresh) {
+                        scrollToBottom();
                     }
                 }
 
@@ -293,8 +285,25 @@
             })
             .finally(() => {
                 isFetchingMessages = false;
-                processMessageQueue(); // 在消息刷新完成后处理消息队列
+                processMessageQueue();
             });
+        }
+
+        // 新增 renderMessages 函数
+        function renderMessages() {
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = '';  // 清空现有消息
+            const fragment = document.createDocumentFragment();
+
+            allMessages.forEach(msg => {
+                const msgElement = document.createElement("div");
+                msgElement.id = `msg-${msg.id}`;
+                msgElement.textContent = `${msg.timestamp} ${msg.username}: ${msg.message}`;
+                msgElement.style.backgroundColor = getColorForUsername(msg.username);
+                fragment.appendChild(msgElement);
+            });
+
+            chatBox.appendChild(fragment);
         }
 
         const REFRESH_INTERVAL = 1000;  // 1秒刷新一次
@@ -304,12 +313,17 @@
             }, REFRESH_INTERVAL);
         }
 
-        // 监听滚动事件，加载更多历史消息
+        // 修改滚动事件监听器
         document.getElementById("chat-box").addEventListener("scroll", function() {
             if (this.scrollTop === 0 && !isFetchingMessages) {
                 const currentPage = parseInt(this.getAttribute("data-page") || "1", 10);
                 this.setAttribute("data-page", currentPage + 1);
-                getMessages(currentPage + 1);
+                const oldScrollHeight = this.scrollHeight;
+                getMessages(currentPage + 1, false);
+                // 保持滚动位置
+                setTimeout(() => {
+                    this.scrollTop = this.scrollHeight - oldScrollHeight;
+                }, 100);
             }
         });
 
@@ -340,7 +354,14 @@
                 .then(data => {
                     if (data.success) {
                         alert("所有聊天记录已删除！");
-                        getMessages();  // 重新获取消息
+                        // 重置消息相关变量
+                        allMessages = [];
+                        lastMessageId = null;
+                        oldestMessageId = null;
+                        // 清空聊天框
+                        document.getElementById("chat-box").innerHTML = '';
+                        // 重新获取消息
+                        getMessages(1, true);
                     } else {
                         alert("删除失败: " + data.message);
                     }
